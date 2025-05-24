@@ -1,0 +1,20 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: employee-directory
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: employee-directory
+  template:
+    metadata:
+      labels:
+        app: employee-directory
+    spec:
+      containers:
+        - name: employee-directory
+          image: employee-directory:latest
+          ports:
+            - containerPort: 8080
