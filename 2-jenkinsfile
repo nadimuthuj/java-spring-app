@@ -1,0 +1,62 @@
+//this file SSH the jar to host where the jenkins container runs, and run them as java process. 
+//access the app using http://192.168.1.105:8080/employees
+pipeline {
+  agent any
+
+  environment {
+    JAR_NAME = 'employee-directory-0.0.1-SNAPSHOT.jar'
+    TARGET_PATH = '/var/jenkins_home/employee-directory.jar'
+    REMOTE_JAR_PATH = '/home/ubuntu/mount/employee-directory.jar'
+    REMOTE_HOST = '192.168.1.105'
+    REMOTE_USER = 'ubuntu'
+  }
+
+  stages {
+    stage('Checkout Code') {
+      steps {
+        checkout([
+          $class: 'GitSCM',
+          branches: [[name: '*/main']], // or use '*/master' or specific branch
+          userRemoteConfigs: [[
+            url: 'https://github.com/nadimuthuj/java-spring-app.git',
+            credentialsId: 'fcafd0f8-dcc8-4df3-96a6-055a8c2a55e1'  // 👈 your GitHub PAT or username/password
+          ]]
+        ])
+      }
+    }      
+    stage('Build') {
+      steps {
+        echo 'Building the Java app...'
+        sh './mvnw clean package'
+      }
+    }
+
+    stage('Copy JAR to Shared Folder') {
+      steps {
+        echo "Copying $JAR_NAME to $TARGET_PATH"
+        sh 'cp target/$JAR_NAME $TARGET_PATH'
+      }
+    }
+
+    stage('Deploy via SSH') {
+      steps {
+        echo 'Deploying app to remote VM via SSH...'
+        withCredentials([sshUserPrivateKey(credentialsId: 'vm-ssh-key', keyFileVariable: 'SSH_KEY')]) {
+          sh '''
+            ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no $REMOTE_USER@$REMOTE_HOST \
+            "nohup java -jar $REMOTE_JAR_PATH > /dev/null 2>&1 &"
+          '''
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      echo '✅ Deployment completed successfully!'
+    }
+    failure {
+      echo '❌ Deployment failed.'
+    }
+  }
+}
