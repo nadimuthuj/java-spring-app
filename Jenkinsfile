@@ -21,5 +21,22 @@ pipeline {
                 '''
             }
         }        
+        stage('Test') {
+            steps {
+                echo 'Testing if the app is accessible...'
+                script {
+                    def response = sh(
+                        script: "curl -s -o /dev/null -w \"%{http_code}\" http://192.168.1.105:8080/employees",
+                        returnStdout: true
+                    ).trim()
+        
+                    if (response != '200') {
+                        error "App is not accessible. Got HTTP status: ${response}"
+                    } else {
+                        echo "App is accessible. HTTP 200 OK."
+                    }
+                }
+            }
+        }        
     }
 }
