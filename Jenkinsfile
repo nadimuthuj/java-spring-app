@@ -9,6 +9,7 @@ pipeline {
         }
         stage('Docker Build') {
             steps {
+                sh 'whoami'
                 sh 'docker build -t employee-directory:latest .'
             }
         }
