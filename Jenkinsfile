@@ -37,6 +37,17 @@ pipeline {
                     }
                 }
             }
+        }
+        stage('Push to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
+                    script {
+                        sh 'echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin'
+                        sh 'docker tag employee-directory:latest $DOCKERHUB_USERNAME/employee-directory:latest'
+                        sh 'docker push $DOCKERHUB_USERNAME/employee-directory:latest'
+                    }
+                }
+            }
         }        
     }
 }
