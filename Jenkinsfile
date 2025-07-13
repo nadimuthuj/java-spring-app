@@ -2,6 +2,18 @@
 pipeline {
     agent any
     stages {
+        stage('Checkout Code') {
+            steps {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/main']], // or '*/master' or a specific branch
+                    userRemoteConfigs: [[
+                        url: 'git@github.com:nadimuthuj/java-spring-app.git',
+                        credentialsId: 'github-toekn-new'
+                    ]]
+                ])
+            }
+        }        
         stage('Build') {
             steps {
                 sh './mvnw clean package'
