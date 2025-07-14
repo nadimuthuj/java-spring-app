@@ -1,22 +1,15 @@
 
 pipeline {
     agent any
-    options {
-        skipDefaultCheckout(true)
-    }    
+
     stages {
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: '*/main']], // or '*/master' or a specific branch
-                    userRemoteConfigs: [[
-                        url: 'git@github.com:nadimuthuj/java-spring-app.git',
-                        credentialsId: 'github-toekn-new'
-                    ]]
-                ])
+                git credentialsId: 'github-toekn-new',
+                    url: 'https://github.com/nadimuthuj/java-spring-app.git',
+                    branch: 'main'
             }
-        }        
+        }
         stage('Build') {
             steps {
                 sh './mvnw clean package'
